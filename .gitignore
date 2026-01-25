@@ -1,0 +1,47 @@
+# GitLab data volumes
+gitlab-data/
+gitlab-config/
+gitlab-logs/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Configuration JSON (contains passwords)
+config.json
+
+# Kubernetes
+# Local overrides
+k8s/*-local.yaml
+k8s/*-override.yaml
+k8s/secrets/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Backup files
+*.bak
+*.backup

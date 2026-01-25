@@ -1,0 +1,48 @@
+# Git ignore patterns
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Docker files (not needed in image)
+docker-compose.yml
+.dockerignore
+
+# Kubernetes manifests (not needed in image)
+k8s/
+
+# Configuration files (will be mounted or baked in)
+config.json
+config.json.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/

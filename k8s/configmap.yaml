@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-config-json
+  labels:
+    app: gitlab
+data:
+  config.json: |
+    {
+      "users": [
+        {
+          "username": "developer1",
+          "email": "developer1@example.com",
+          "password": "ChangeMe123!",
+          "name": "Developer One",
+          "is_admin": false,
+          "groups": ["frontend", "backend"],
+          "skip_confirmation": true
+        },
+        {
+          "username": "devops-user",
+          "email": "devops@example.com",
+          "password": "ChangeMe123!",
+          "name": "DevOps User",
+          "is_admin": false,
+          "groups": ["devops"],
+          "skip_confirmation": true
+        }
+      ],
+      "groups": [
+        {
+          "name": "frontend",
+          "path": "frontend",
+          "description": "Frontend projects group",
+          "visibility": "private"
+        },
+        {
+          "name": "backend",
+          "path": "backend",
+          "description": "Backend projects group",
+          "visibility": "internal"
+        },
+        {
+          "name": "devops",
+          "path": "devops",
+          "description": "DevOps and infrastructure projects group",
+          "visibility": "private"
+        }
+      ],
+      "projects": [
+        {
+          "name": "web-app",
+          "path": "web-app",
+          "description": "Main web application",
+          "visibility": "private",
+          "group": "frontend",
+          "initialize_with_readme": true,
+          "default_branch": "main",
+          "issues_enabled": true,
+          "merge_requests_enabled": true,
+          "wiki_enabled": true,
+          "snippets_enabled": true,
+          "container_registry_enabled": true,
+          "lfs_enabled": false,
+          "shared_runners_enabled": true,
+          "only_allow_merge_if_pipeline_succeeds": false,
+          "only_allow_merge_if_all_discussions_are_resolved": false,
+          "allow_merge_on_skipped_pipeline": false,
+          "remove_source_branch_after_merge": true,
+          "printing_merge_request_link_enabled": true,
+          "ci_config_path": ".gitlab-ci.yml"
+        },
+        {
+          "name": "api-service",
+          "path": "api-service",
+          "description": "REST API service",
+          "visibility": "internal",
+          "group": "backend",
+          "initialize_with_readme": true,
+          "default_branch": "main",
+          "issues_enabled": true,
+          "merge_requests_enabled": true,
+          "wiki_enabled": false,
+          "snippets_enabled": true,
+          "container_registry_enabled": true,
+          "lfs_enabled": false,
+          "shared_runners_enabled": true,
+          "only_allow_merge_if_pipeline_succeeds": true,
+          "only_allow_merge_if_all_discussions_are_resolved": true,
+          "allow_merge_on_skipped_pipeline": false,
+          "remove_source_branch_after_merge": true,
+          "printing_merge_request_link_enabled": true,
+          "ci_config_path": ".gitlab-ci.yml"
+        },
+        {
+          "name": "infrastructure",
+          "path": "infrastructure",
+          "description": "Infrastructure as code configuration",
+          "visibility": "private",
+          "group": "devops",
+          "initialize_with_readme": true,
+          "default_branch": "main",
+          "issues_enabled": true,
+          "merge_requests_enabled": true,
+          "wiki_enabled": true,
+          "snippets_enabled": false,
+          "container_registry_enabled": false,
+          "lfs_enabled": false,
+          "shared_runners_enabled": true,
+          "only_allow_merge_if_pipeline_succeeds": false,
+          "only_allow_merge_if_all_discussions_are_resolved": false,
+          "allow_merge_on_skipped_pipeline": false,
+          "remove_source_branch_after_merge": true,
+          "printing_merge_request_link_enabled": true,
+          "ci_config_path": ".gitlab-ci.yml"
+        }
+      ]
+    }

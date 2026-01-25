@@ -1,0 +1,40 @@
+# Kubernetes ignore patterns
+# This file documents patterns that should not be applied to the cluster
+# Note: kubectl doesn't have native ignore support, but you can use this as reference
+# or use tools like kustomize or helm for more advanced ignore patterns
+
+# Local configuration overrides
+*-local.yaml
+*-override.yaml
+*-local.yml
+*-override.yml
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+*.md
+
+# Scripts (if any)
+*.sh
+
+# Secrets (should use sealed-secrets or external-secrets instead)
+*-secret.yaml
+secrets/
