@@ -30,9 +30,10 @@ Unlike standard GitLab installations that require manual configuration through t
 ## Quick Start
 
 1. Copy the example configuration file:
-   ```bash
-   cp config.json.example config.json
-   ```
+
+```bash
+cp config.json.example config.json
+```
 
 2. Customize `config.json` with your users, groups, and projects
 
@@ -105,15 +106,17 @@ docker push <REGISTRY>/gitlab-custom:latest
 #### Deployment Steps
 
 1. **Update image reference** in `k8s/deployment.yaml`:
-   ```yaml
-   image: your-registry.com/gitlab-custom:latest
-   ```
+
+```yaml
+image: your-registry.com/gitlab-custom:latest
+```
 
 2. **Create PersistentVolumeClaims**:
-   ```bash
-   kubectl apply -f k8s/pvc/
-   kubectl get pvc  # Wait for PVCs to be bound
-   ```
+
+```bash
+kubectl apply -f k8s/pvc/
+kubectl get pvc  # Wait for PVCs to be bound
+```
 
 3. **Create ConfigMap** (if using ConfigMap approach):
    ```bash
