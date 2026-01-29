@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 # Script para crear un usuario en GitLab
 
-username = ENV['USER_USERNAME']
-email = ENV['USER_EMAIL']
-password = ENV['USER_PASSWORD']
-name = ENV['USER_NAME'] || username
-is_admin = ENV['USER_IS_ADMIN'] == 'true'
+username          = ENV['USER_USERNAME']
+email             = ENV['USER_EMAIL']
+password          = ENV['USER_PASSWORD']
+name              = ENV['USER_NAME'] || username
+is_admin          = ENV['USER_IS_ADMIN'] == 'true'
 skip_confirmation = ENV['USER_SKIP_CONFIRMATION'] != 'false'
 
 if username.nil? || username.empty? || email.nil? || email.empty? || password.nil? || password.empty?

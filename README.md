@@ -2,7 +2,6 @@
 
 ![GitLab](https://img.shields.io/badge/gitlab-%23181717.svg?style=flat&logo=gitlab&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=flat&logo=kubernetes&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A GitLab Community Edition setup with **declarative configuration** and automated initialization. Define your entire GitLab structure—users, groups, and projects—in a single JSON file, and deploy a fully configured instance with zero manual intervention.
@@ -12,7 +11,7 @@ A GitLab Community Edition setup with **declarative configuration** and automate
 - **Declarative configuration**: Define your entire GitLab structure in a single JSON file—users, groups, and projects are created automatically
 - **Zero-touch setup**: Configure once, deploy anywhere—no manual GitLab configuration required
 - **Idempotent**: Safe to run multiple times, only initializes once
-- **Portable**: Deploy to Docker, Kubernetes, or any containerized environment
+- **Portable**: Deploy to Docker or any containerized environment
 - **Customizable**: Easy to configure via environment variables and JSON files
 - **Production-ready**: Includes health checks, persistent storage, and resource optimization
 
@@ -62,111 +61,11 @@ Access at `http://localhost:8931` (default port mapping).
 
 For detailed instructions, see the [Docker Compose section](#docker-compose-deployment).
 
-### Kubernetes
-
-Ideal for production environments, cloud deployments, or when you need orchestration features.
-
-#### Prerequisites
-
-- Kubernetes cluster (v1.19 or later)
-- `kubectl` configured to access your cluster
-- Docker image registry accessible by your Kubernetes cluster
-- Sufficient cluster resources:
-  - At least 4GB RAM available per node
-  - Storage for PersistentVolumeClaims (80Gi total minimum)
-
-#### Building and Pushing the Image
-
-Before deploying, build and push the custom GitLab image to a registry accessible by your cluster:
-
-**Option 1: Using ConfigMap (Recommended)**
-
-If you plan to use ConfigMap for `config.json`:
-
-```bash
-# Build the image (config.json will be mounted from ConfigMap)
-docker build -t <REGISTRY>/gitlab-custom:latest -f docker/Dockerfile .
-docker push <REGISTRY>/gitlab-custom:latest
-```
-
-**Option 2: Baked-in Configuration**
-
-If you prefer to bake `config.json` into the image:
-
-```bash
-# Ensure config.json exists
-cp config.json.example config.json
-# Edit config.json with your settings
-
-# Build and push
-docker build -t <REGISTRY>/gitlab-custom:latest -f docker/Dockerfile .
-docker push <REGISTRY>/gitlab-custom:latest
-```
-
-#### Deployment Steps
-
-1. **Update image reference** in `k8s/deployment.yaml`:
-
-```yaml
-image: your-registry.com/gitlab-custom:latest
-```
-
-2. **Create PersistentVolumeClaims**:
-
-```bash
-kubectl apply -f k8s/pvc/
-kubectl get pvc  # Wait for PVCs to be bound
-```
-
-3. **Create ConfigMap** (if using ConfigMap approach):
-   ```bash
-   kubectl apply -f k8s/configmap.yaml
-   ```
-   Or create your own:
-   ```bash
-   kubectl create configmap gitlab-config-json \
-     --from-file=config.json=config.json \
-     --dry-run=client -o yaml | kubectl apply -f -
-   ```
-
-4. **Deploy GitLab**:
-   ```bash
-   kubectl apply -f k8s/deployment.yaml
-   kubectl apply -f k8s/service.yaml
-   ```
-
-5. **Verify deployment**:
-   ```bash
-   kubectl get pods -l app=gitlab
-   kubectl logs -l app=gitlab --tail=50 -f
-   ```
-
-#### Accessing GitLab
-
-**Port Forwarding** (for quick local access):
-```bash
-kubectl port-forward svc/gitlab 8080:80
-# Access at http://localhost:8080
-```
-
-**Ingress** (recommended for production):
-Create an Ingress resource and update `GITLAB_OMNIBUS_CONFIG` in `deployment.yaml` with your domain.
-
 #### Resource Requirements
 
 The deployment requests:
 - **CPU**: 2 cores (minimum), 4 cores (limit)
 - **Memory**: 4Gi (minimum), 8Gi (limit)
-
-Adjust these in `k8s/deployment.yaml` based on your cluster capacity.
-
-#### Configuration Options
-
-- **Storage Classes**: If your cluster requires a specific storage class, update `storageClassName` in the PVC files in `k8s/pvc/`
-- **GITLAB_URL**: Set to `http://gitlab:80` for internal communication (uses Kubernetes service discovery)
-- **ConfigMap vs Baked-in**: Choose between mounting `config.json` from ConfigMap or baking it into the image
-
-For detailed instructions, troubleshooting, and advanced configuration, see [k8s/README.md](k8s/README.md).
 
 ## Architecture
 
@@ -365,25 +264,11 @@ GitLab data is stored in Docker volumes:
 docker exec gitlab cat /etc/gitlab/initial_root_password
 ```
 
-### Kubernetes
-
-```bash
-kubectl exec -it deployment/gitlab -- cat /etc/gitlab/initial_root_password
-```
-
-## Troubleshooting
-
 ### Forgotten Root Password
 
 **Docker Compose:**
 ```bash
 docker exec -it gitlab gitlab-rails console
-# In console: User.find_by_username('root').update(password: 'new_password')
-```
-
-**Kubernetes:**
-```bash
-kubectl exec -it deployment/gitlab -- gitlab-rails console
 # In console: User.find_by_username('root').update(password: 'new_password')
 ```
 
@@ -400,12 +285,6 @@ token = user.personal_access_tokens.create!(name: 'automation-token', scopes: ['
 puts token.token
 ```
 
-**Kubernetes:**
-```bash
-kubectl exec -it deployment/gitlab -- gitlab-rails console
-# Same commands as above
-```
-
 ### Memory Issues
 
 > GitLab requires at least 4GB of RAM
@@ -413,47 +292,6 @@ kubectl exec -it deployment/gitlab -- gitlab-rails console
 1. Reduce workers in configuration (see deployment-specific docs)
 2. Increase system resources or reduce resource usage
 3. Restart the service
-
-### Initialization Not Running
-
-**Docker Compose:**
-```bash
-docker exec gitlab rm /etc/gitlab/.initialized
-docker exec gitlab /opt/gitlab/init-scripts/init-gitlab.sh
-```
-
-**Kubernetes:**
-```bash
-kubectl exec -it deployment/gitlab -- rm /etc/gitlab/.initialized
-kubectl exec -it deployment/gitlab -- /opt/gitlab/init-scripts/init-gitlab.sh
-```
-
-### Service Won't Start
-
-Check logs for your deployment method:
-
-**Docker Compose:**
-```bash
-docker compose logs gitlab
-```
-
-**Kubernetes:**
-```bash
-kubectl logs -l app=gitlab
-```
-
-## Requirements
-
-- Container runtime (Docker or Kubernetes)
-- At least 4GB of available RAM
-- Sufficient disk space for GitLab data (recommended: 20GB+)
-- Network access for image pulls (if using registry)
-
-## License
-
-This setup is provided as-is. GitLab Community Edition is licensed under the MIT Expat license.
-
-## References
 
 - [Official GitLab Documentation](https://docs.gitlab.com/)
 - [GitLab Omnibus Configuration](https://docs.gitlab.com/omnibus/)

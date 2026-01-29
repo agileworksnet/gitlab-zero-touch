@@ -1,48 +1,58 @@
-# Git ignore patterns
+# Version control
 .git
 .gitignore
-.gitattributes
+
+# GitLab data volumes
+gitlab-data/
+gitlab-config/
+gitlab-logs/
+
+# Docker
+.docker/
+docker-compose.yml
+docker-compose.override.yml
 
 # Documentation
-README.md
 docs/
-*.md
-
-# Docker files (not needed in image)
-docker-compose.yml
-.dockerignore
-
-# Kubernetes manifests (not needed in image)
-k8s/
-
-# Configuration files (will be mounted or baked in)
-config.json
-config.json.example
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
+README.md
+README.es.md
 
 # Logs
 *.log
 logs/
 
-# Environment files
+# Environment variables
 .env
 .env.local
 .env.*.local
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Configuration JSON (contains passwords)
+config.json
+
+# Kubernetes
+k8s/
 
 # Temporary files
 *.tmp
 *.temp
 tmp/
 temp/
+
+# Backup files
+*.bak
+*.backup
+
+# Repositories
+repositories/*
+!repositories/.gitkeep

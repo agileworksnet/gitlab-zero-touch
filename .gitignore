@@ -45,3 +45,7 @@ temp/
 # Backup files
 *.bak
 *.backup
+
+# Repositories
+repositories/*
+!repositories/.gitkeep

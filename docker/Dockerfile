@@ -9,7 +9,7 @@ COPY docker/scripts/ /opt/gitlab/init-scripts/
 # Copiar script de inicialización
 COPY docker/init-gitlab.sh /opt/gitlab/init-scripts/
 
-# Copiar archivo de configuración (si existe)
+# Copiar archivo de configuración
 COPY config.json /opt/gitlab/init-scripts/config.json
 
 # Dar permisos de ejecución a los scripts

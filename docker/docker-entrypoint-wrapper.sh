@@ -27,10 +27,18 @@ fi
 # Ejecutar script de inicialización solo la primera vez
 if [ ! -f /etc/gitlab/.initialized ]; then
     echo "Ejecutando script de inicialización..."
-    export DOCKER_CONTAINER=1
-    export GITLAB_URL="${GITLAB_URL:-http://localhost:80}"
-    export CONFIG_FILE="${CONFIG_FILE:-/opt/gitlab/init-scripts/config.json}"
-    /opt/gitlab/init-scripts/init-gitlab.sh || true
+
+    if [ -z "$GITLAB_URL" ]; then
+        echo "Error: GITLAB_URL no está definida"
+        exit 1
+    fi
+
+    if [ -z "$CONFIG_FILE" ]; then
+        echo "Error: CONFIG_FILE no está definida"
+        exit 1
+    fi
+
+    /opt/gitlab/init-scripts/init-gitlab.sh
     touch /etc/gitlab/.initialized
     echo "Inicialización completada"
 fi

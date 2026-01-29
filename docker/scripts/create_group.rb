@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 # Script para crear un grupo en GitLab
 
-group_name = ENV['GROUP_NAME']
-group_path = ENV['GROUP_PATH']
+group_name  = ENV['GROUP_NAME']
+group_path  = ENV['GROUP_PATH']
 description = ENV['GROUP_DESCRIPTION'] || ''
-visibility = ENV['GROUP_VISIBILITY'] || 'private'
+visibility  = ENV['GROUP_VISIBILITY'] || 'private'
 
 if group_name.nil? || group_name.empty? || group_path.nil? || group_path.empty?
   puts 'ERROR:GROUP_NAME y GROUP_PATH son requeridos'

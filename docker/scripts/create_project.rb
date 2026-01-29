@@ -3,11 +3,11 @@
 
 require 'json'
 
-project_name = ENV['PROJECT_NAME']
-project_path = ENV['PROJECT_PATH'] || project_name
-description = ENV['PROJECT_DESCRIPTION'] || ''
-visibility = ENV['PROJECT_VISIBILITY'] || 'private'
-namespace_id = ENV['PROJECT_NAMESPACE_ID']
+project_name        = ENV['PROJECT_NAME']
+project_path        = ENV['PROJECT_PATH'] || project_name
+description         = ENV['PROJECT_DESCRIPTION'] || ''
+visibility          = ENV['PROJECT_VISIBILITY'] || 'private'
+namespace_id        = ENV['PROJECT_NAMESPACE_ID']
 project_config_json = ENV['PROJECT_CONFIG_JSON']
 
 if project_name.nil? || project_name.empty?
@@ -34,7 +34,7 @@ visibility_level = case visibility.downcase
                    end
 
 # Obtener valores de configuración
-init_readme = config.fetch('initialize_with_readme', true)
+init_readme = config.fetch('initialize_with_readme', false)
 default_branch = config.fetch('default_branch', 'main')
 issues_enabled = config.fetch('issues_enabled', true)
 merge_requests_enabled = config.fetch('merge_requests_enabled', true)
@@ -92,10 +92,12 @@ begin
   )
   
   if project.save
+    # Crear el repositorio en disco siempre
+    project.repository.create_if_not_exists
+
     # Inicializar con README si está configurado
     if init_readme
       begin
-        project.repository.create_if_not_exists
         project.repository.create_file(
           root,
           'README.md',
@@ -107,7 +109,7 @@ begin
         # Ignorar errores al crear README
       end
     end
-    
+
     puts "SUCCESS:#{project.id}"
     exit 0
   else

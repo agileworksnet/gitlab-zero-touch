@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # Script para asignar un usuario a un grupo en GitLab
 
-user_id = ENV['USER_ID']
-group_path = ENV['GROUP_PATH']
+user_id      = ENV['USER_ID']
+group_path   = ENV['GROUP_PATH']
 access_level = (ENV['ACCESS_LEVEL'] || '30').to_i
 
 if user_id.nil? || user_id.empty? || group_path.nil? || group_path.empty?

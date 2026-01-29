@@ -15,31 +15,33 @@ services:
     hostname: gitlab.local
     container_name: gitlab
     ports:
-      - "8931:80"       # Web UI + API
-      - "8932:443"      # HTTPS
-      - "2223:22"       # SSH
+      # Web UI + API
+      - "8929:80"
+      # SSH
+      - "2222:22"
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
       - gitlab-data:/var/opt/gitlab
+      - ./repositories:/repositories
     environment:
       GITLAB_URL: "http://localhost:80"
       CONFIG_FILE: "/opt/gitlab/init-scripts/config.json"
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8931'
-        
-        gitlab_rails['gitlab_shell_ssh_port'] = 2223
-        
+        external_url 'http://host.docker.internal:8929'
+
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+
         puma['worker_processes'] = 2
         sidekiq['concurrency'] = 5
-        
+
         gitlab_rails['gitlab_signup_enabled'] = false
-        
+
         prometheus_monitoring['enable'] = false
         alertmanager['enable'] = false
         gitlab_pages['enable'] = false
         gitlab_kas['enable'] = false
-        
+
         nginx['listen_port'] = 80
         nginx['listen_https'] = false
         nginx['listen_addresses'] = ['*']
@@ -53,3 +55,4 @@ services:
       timeout: 10s
       retries: 10
       start_period: 300s
+

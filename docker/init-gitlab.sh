@@ -8,21 +8,25 @@ set -e
 # - Espera a que GitLab esté disponible
 # - Obtiene la contraseña inicial de root
 # - Crea un token de acceso personal para automatización
+#
+# Variables de entorno requeridas:
+# - GITLAB_URL: URL interna de GitLab
+# - CONFIG_FILE: Ruta al archivo de configuración JSON
 # =============================================================================
 
-GITLAB_URL="${GITLAB_URL:-http://localhost:80}"
-GITLAB_ROOT_PASSWORD="${GITLAB_ROOT_PASSWORD:-}"
-MAX_WAIT_SECONDS=300
-CONFIG_FILE="${CONFIG_FILE:-/opt/gitlab/init-scripts/config.json}"
-
-# Si estamos dentro del contenedor, no necesitamos docker exec
-if [ -f /.dockerenv ] || [ -n "${DOCKER_CONTAINER}" ]; then
-    RUNNER_CMD="gitlab-rails runner"
-else
-    # Si estamos fuera, usar docker exec (para compatibilidad)
-    CONTAINER_NAME="${CONTAINER_NAME:-gitlab}"
-    RUNNER_CMD="docker exec ${CONTAINER_NAME} gitlab-rails runner"
+# Validar variables requeridas
+if [ -z "$GITLAB_URL" ]; then
+    echo "[ERROR] GITLAB_URL no está definida" >&2
+    exit 1
 fi
+
+if [ -z "$CONFIG_FILE" ]; then
+    echo "[ERROR] CONFIG_FILE no está definida" >&2
+    exit 1
+fi
+
+MAX_WAIT_SECONDS=300
+RUNNER_CMD="gitlab-rails runner"
 
 # Colores para output
 RED='\033[0;31m'
@@ -31,15 +35,15 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "${GREEN}[INFO]${NC} $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # =============================================================================
@@ -901,6 +905,121 @@ create_projects_from_config() {
 }
 
 # =============================================================================
+# Push de un repositorio a GitLab
+# =============================================================================
+push_single_repository() {
+    local token="$1"
+    local project_dir="$2"
+    local gitlab_path="$3"
+
+    log_info "  Subiendo: ${gitlab_path}"
+
+    # Verificar que el proyecto existe en GitLab
+    local project_path_escaped
+    project_path_escaped=$(printf '%s' "$gitlab_path" | sed "s/'/\\\\'/g")
+    local project_exists
+    project_exists=$(${RUNNER_CMD} "
+        project = Project.find_by_full_path('${project_path_escaped}')
+        puts project ? 'exists' : 'missing'
+    " 2>/dev/null | tail -1)
+
+    if [ "$project_exists" != "exists" ]; then
+        log_warn "    Proyecto no existe en GitLab: ${gitlab_path}"
+        return 1
+    fi
+
+    # Construir URL con token
+    local remote_url="http://oauth2:${token}@localhost:80/${gitlab_path}.git"
+
+    cd "$project_dir" || { log_error "    No se puede acceder a: ${project_dir}"; return 1; }
+
+    # Configurar git
+    git config user.email "init@gitlab.local"
+    git config user.name "GitLab Init"
+    git config http.sslVerify false
+
+    # Reinicializar repo si .git está vacío (solo marcador)
+    if [ ! -f ".git/HEAD" ]; then
+        rm -rf .git
+        if ! git init -b main >/dev/null 2>&1; then
+            log_error "    No se puede inicializar git (¿sistema de archivos read-only?)"
+            return 1
+        fi
+    fi
+
+    # Add y commit si hay cambios
+    if ! git add -A 2>&1; then
+        log_error "    Error en git add"
+        return 1
+    fi
+
+    if ! git diff --cached --quiet 2>/dev/null; then
+        if ! git commit -m "Initial provisioning" >/dev/null 2>&1; then
+            log_error "    Error en git commit"
+            return 1
+        fi
+    fi
+
+    # Verificar que hay commits
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        log_warn "    Repositorio vacío, nada que subir"
+        return 0
+    fi
+
+    # Configurar remote y push
+    git remote remove origin 2>/dev/null || true
+    git remote add origin "$remote_url"
+
+    local push_output
+    if push_output=$(git push -u origin main 2>&1); then
+        log_info "    ✓ Push exitoso"
+        return 0
+    else
+        log_error "    ✗ Push falló: ${push_output}"
+        return 1
+    fi
+}
+
+# =============================================================================
+# Push de repositorios desde /repositories
+# =============================================================================
+push_repositories() {
+    local token="$1"
+    local repositories_path="/repositories"
+
+    if [ ! -d "$repositories_path" ]; then
+        log_info "No hay carpeta /repositories montada, saltando push"
+        return 0
+    fi
+
+    log_info "Escaneando repositorios en ${repositories_path}..."
+
+    local pushed=0
+    local failed=0
+    local skipped=0
+
+    # Buscar carpetas .git - el directorio padre es un proyecto
+    while IFS= read -r git_dir; do
+        local project_dir
+        project_dir=$(dirname "$git_dir")
+
+        local gitlab_path="${project_dir#$repositories_path/}"
+
+        if push_single_repository "$token" "$project_dir" "$gitlab_path"; then
+            pushed=$((pushed + 1))
+        else
+            failed=$((failed + 1))
+        fi
+    done < <(find "$repositories_path" -type d -name ".git" 2>/dev/null)
+
+    if [ $pushed -eq 0 ] && [ $failed -eq 0 ]; then
+        log_info "No se encontraron repositorios con .git"
+    else
+        log_info "Repositorios: ${pushed} subidos, ${failed} fallidos"
+    fi
+}
+
+# =============================================================================
 # Procesar configuración JSON completa
 # =============================================================================
 process_config_json() {
@@ -941,10 +1060,16 @@ process_config_json() {
     log_info "=== ETAPA 4 completada ==="
     log_info ""
 
+    # ETAPA 5: Push de repositorios
+    log_info "=== ETAPA 5: Push de repositorios ==="
+    push_repositories "$token"
+    log_info "=== ETAPA 5 completada ==="
+    log_info ""
+
     log_info "=========================================="
     log_info "RESUMEN FINAL DE CONFIGURACIÓN"
     log_info "=========================================="
-    
+
     # Obtener estadísticas finales
     local final_groups
     final_groups=$(${RUNNER_CMD} "puts Group.count" 2>/dev/null | tail -1)
@@ -952,7 +1077,7 @@ process_config_json() {
     final_users=$(${RUNNER_CMD} "puts User.count" 2>/dev/null | tail -1)
     local final_projects
     final_projects=$(${RUNNER_CMD} "puts Project.count" 2>/dev/null | tail -1)
-    
+
     log_info "Total en GitLab:"
     log_info "  - Grupos: ${final_groups}"
     log_info "  - Usuarios: ${final_users}"

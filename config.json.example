@@ -3,108 +3,48 @@
     {
       "username": "developer1",
       "email": "developer1@example.com",
-      "password": "ChangeMe123!",
+      "password": "D3v3l0p3r!Secure#2024",
       "name": "Developer One",
       "is_admin": false,
-      "groups": ["frontend", "backend"],
-      "skip_confirmation": true
+      "skip_confirmation": true,
+      "groups": ["python-tools"]
     },
     {
       "username": "devops-user",
       "email": "devops@example.com",
-      "password": "ChangeMe123!",
+      "password": "D3v0ps!M4st3r#2024Secure",
       "name": "DevOps User",
       "is_admin": false,
-      "groups": ["devops"],
-      "skip_confirmation": true
+      "skip_confirmation": true,
+      "groups": ["python-tools"]
+    },
+    {
+      "username": "admin-user",
+      "email": "admin@example.com",
+      "password": "4dm1n!Sup3rUs3r#2024Priv",
+      "name": "Admin User",
+      "is_admin": true,
+      "skip_confirmation": true,
+      "groups": ["python-tools"]
     }
   ],
   "groups": [
     {
-      "name": "frontend",
-      "path": "frontend",
-      "description": "Grupo para proyectos frontend",
-      "visibility": "private"
-    },
-    {
-      "name": "backend",
-      "path": "backend",
-      "description": "Grupo para proyectos backend",
+      "name": "python-tools",
+      "path": "python-tools",
+      "description": "Herramientas Python",
       "visibility": "internal"
-    },
-    {
-      "name": "devops",
-      "path": "devops",
-      "description": "Grupo para proyectos DevOps e infraestructura",
-      "visibility": "private"
     }
   ],
   "projects": [
     {
-      "name": "web-app",
-      "path": "web-app",
-      "description": "Aplicación web principal",
-      "visibility": "private",
-      "group": "frontend",
-      "initialize_with_readme": true,
-      "default_branch": "main",
-      "issues_enabled": true,
-      "merge_requests_enabled": true,
-      "wiki_enabled": true,
-      "snippets_enabled": true,
-      "container_registry_enabled": true,
-      "lfs_enabled": false,
-      "shared_runners_enabled": true,
-      "only_allow_merge_if_pipeline_succeeds": false,
-      "only_allow_merge_if_all_discussions_are_resolved": false,
-      "allow_merge_on_skipped_pipeline": false,
-      "remove_source_branch_after_merge": true,
-      "printing_merge_request_link_enabled": true,
-      "ci_config_path": ".gitlab-ci.yml"
-    },
-    {
-      "name": "api-service",
-      "path": "api-service",
-      "description": "Servicio API REST",
+      "name": "example-tool",
+      "path": "example-tool",
+      "group": "python-tools",
+      "description": "Herramienta de ejemplo",
       "visibility": "internal",
-      "group": "backend",
-      "initialize_with_readme": true,
       "default_branch": "main",
-      "issues_enabled": true,
-      "merge_requests_enabled": true,
-      "wiki_enabled": false,
-      "snippets_enabled": true,
-      "container_registry_enabled": true,
-      "lfs_enabled": false,
-      "shared_runners_enabled": true,
-      "only_allow_merge_if_pipeline_succeeds": true,
-      "only_allow_merge_if_all_discussions_are_resolved": true,
-      "allow_merge_on_skipped_pipeline": false,
-      "remove_source_branch_after_merge": true,
-      "printing_merge_request_link_enabled": true,
-      "ci_config_path": ".gitlab-ci.yml"
-    },
-    {
-      "name": "infrastructure",
-      "path": "infrastructure",
-      "description": "Configuración de infraestructura como código",
-      "visibility": "private",
-      "group": "devops",
-      "initialize_with_readme": true,
-      "default_branch": "main",
-      "issues_enabled": true,
-      "merge_requests_enabled": true,
-      "wiki_enabled": true,
-      "snippets_enabled": false,
-      "container_registry_enabled": false,
-      "lfs_enabled": false,
-      "shared_runners_enabled": true,
-      "only_allow_merge_if_pipeline_succeeds": false,
-      "only_allow_merge_if_all_discussions_are_resolved": false,
-      "allow_merge_on_skipped_pipeline": false,
-      "remove_source_branch_after_merge": true,
-      "printing_merge_request_link_enabled": true,
-      "ci_config_path": ".gitlab-ci.yml"
+      "initialize_with_readme": false
     }
   ]
 }
